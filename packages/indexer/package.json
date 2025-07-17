@@ -29,7 +29,6 @@
     "@openchainxyz/abi-guesser": "^1.0.2",
     "@opensea/stream-js": "^0.1.1",
     "@poprank/rankings": "1.1.20",
-    "@reservoir0x/mint-interface": "*",
     "@reservoir0x/sdk": "*",
     "@shazow/whatsabi": "^0.11.0",
     "amqp-connection-manager": "^4.1.14",
@@ -111,3 +110,4 @@
     "typescript": "^4.6.4"
   }
 }
+

@@ -1,5 +1,5 @@
 import { AddressZero } from "@ethersproject/constants";
-import { parseConfig } from "@reservoir0x/mint-interface";
+// import { parseConfig } from "@reservoir0x/mint-interface";
 
 import { idb } from "@/common/db";
 import { baseProvider } from "@/common/provider";
@@ -439,25 +439,30 @@ export const extractByContractMetadata = async (
     }
   }
 
-  const parsed = await parseConfig(mintConfig, {
-    collection,
-    provider: baseProvider,
-    standard,
-  });
+  // NOTE: parseConfig functionality disabled until @reservoir0x/mint-interface is available
+  // TODO: Re-enable when the package is published to npm
+  // const parsed = await parseConfig(mintConfig, {
+  //   collection,
+  //   provider: baseProvider,
+  //   standard,
+  // });
 
   const collectionMints: CollectionMint[] = [];
-  for (const phase of parsed.phases) {
-    const formatted = phase.format();
-
-    // For the moment we only support public mints
-    if (formatted.kind === "public") {
-      const mint = phase.format();
-      const isSafe = checkMintIsSafe(mint);
-      if (isSafe) {
-        collectionMints.push(mint);
-      }
-    }
-  }
+  
+  // NOTE: Mint phase processing disabled until parseConfig is available
+  // TODO: Re-enable when @reservoir0x/mint-interface package is published
+  // for (const phase of parsed.phases) {
+  //   const formatted = phase.format();
+  //
+  //   // For the moment we only support public mints
+  //   if (formatted.kind === "public") {
+  //     const mint = phase.format();
+  //     const isSafe = checkMintIsSafe(mint);
+  //     if (isSafe) {
+  //       collectionMints.push(mint);
+  //     }
+  //   }
+  // }
 
   // Update the status of each collection mint
   await Promise.all(
@@ -471,3 +476,4 @@ export const extractByContractMetadata = async (
 
   return collectionMints;
 };
+
