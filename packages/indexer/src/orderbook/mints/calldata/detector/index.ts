@@ -476,4 +476,3 @@ export const extractByContractMetadata = async (
 
   return collectionMints;
 };
-
