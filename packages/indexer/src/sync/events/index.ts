@@ -7,12 +7,14 @@ import { archiveProvider, backfillProvider, baseProvider } from "@/common/provid
 import { acquireLock, redis } from "@/common/redis";
 import { config } from "@/config/index";
 import { EventKind, EventSubKind, getEventData } from "@/events-sync/data";
+import { allEventsAddresses } from "@/events-sync/data";
 import { EventsBatch, EventsByKind, processEventsBatchV2 } from "@/events-sync/handlers";
 import { EnhancedEvent } from "@/events-sync/handlers/utils";
 import { parseEvent } from "@/events-sync/parser";
 import * as es from "@/events-sync/storage";
 import * as syncEventsUtils from "@/events-sync/utils";
 import * as blocksModel from "@/models/blocks";
+import { getIndexedContractsAllowlist } from "@/utils/indexed-contracts";
 
 import { removeUnsyncedEventsActivitiesJob } from "@/jobs/elasticsearch/activities/remove-unsynced-events-activities-job";
 import { blockCheckJob } from "@/jobs/events-sync/block-check-queue-job";
@@ -503,6 +505,12 @@ export const syncEventsOnly = async (
   }
 
   const availableEventData = getEventData();
+  // If an allowlist is configured, constrain getLogs by address list for performance
+  const allowlist = await getIndexedContractsAllowlist();
+  if (allowlist?.length) {
+    const staticAddresses = Array.from(new Set(allEventsAddresses));
+    (eventFilter as any).address = Array.from(new Set([...allowlist, ...staticAddresses]));
+  }
   const { logs, getLogsTime } = await _getLogs(eventFilter, rpcProvider);
 
   const blockNumbersFromLogs = [...new Set(logs.map((log) => log.blockNumber))];
@@ -651,6 +659,11 @@ export const syncEvents = async (
   const availableEventData = getEventData();
 
   // Get the logs from the RPC
+  const allowlist2 = await getIndexedContractsAllowlist();
+  if (allowlist2?.length) {
+    const staticAddresses2 = Array.from(new Set(allEventsAddresses));
+    (eventFilter as any).address = Array.from(new Set([...allowlist2, ...staticAddresses2]));
+  }
   const { logs, getLogsTime } = await _getLogs(eventFilter, rpcProvider);
 
   // Filter out transactions that we have no log for (we don't want to save these transactions)

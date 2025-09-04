@@ -73,12 +73,6 @@ export const postSyncEventsOptions: RouteOptions = {
       const useArchiveRpcProvider = payload.useArchiveRpcProvider;
       const useBackfillRpcProvider = payload.useBackfillRpcProvider;
 
-      // if (!syncEventsOnly && toBlock - fromBlock > 1000) {
-      //   return {
-      //     message: "Unsafe to trigger a large backfill request with `syncEventsOnly` disabled",
-      //   };
-      // }
-
       await eventsSyncBackfillJob.addToQueue(fromBlock, toBlock, {
         syncDetails,
         backfill,
