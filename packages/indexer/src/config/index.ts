@@ -318,7 +318,4 @@ export const config = {
   updateTopCurrenciesSchedule: process.env.UPDATE_TOP_CURRENCIES_SCHEDULE
     ? String(process.env.UPDATE_TOP_CURRENCIES_SCHEDULE)
     : undefined,
-
-  // Optional path to a CSV file with one address per line
-  indexedContractsCsvPath: String(process.env.INDEXED_CONTRACTS_CSV_PATH || ""),
 };

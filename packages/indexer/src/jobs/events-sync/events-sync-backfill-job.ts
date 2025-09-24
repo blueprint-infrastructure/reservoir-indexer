@@ -2,7 +2,6 @@
 import { AbstractRabbitMqJobHandler, BackoffStrategy } from "@/jobs/abstract-rabbit-mq-job-handler";
 import { logger } from "@/common/logger";
 import { SyncBlockOptions, syncEvents, syncEventsOnly } from "@/events-sync/index";
-import { getIndexedContractsAllowlist } from "@/utils/indexed-contracts";
 import _ from "lodash";
 import { config } from "@/config/index";
 
@@ -52,7 +51,6 @@ export default class EventsSyncBackfillJob extends AbstractRabbitMqJobHandler {
     }
 
     try {
-      // If global allowlist exists, we will let sync layer enforce it. No change needed here.
       if (syncOptions?.syncEventsOnly) {
         await syncEventsOnly(
           {
