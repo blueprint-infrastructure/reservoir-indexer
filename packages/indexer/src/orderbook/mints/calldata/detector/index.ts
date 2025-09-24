@@ -2,7 +2,6 @@ import { AddressZero } from "@ethersproject/constants";
 // import { parseConfig } from "@reservoir0x/mint-interface";
 
 import { idb } from "@/common/db";
-import { baseProvider } from "@/common/provider";
 import { redis } from "@/common/redis";
 import { bn, fromBuffer, toBuffer } from "@/common/utils";
 import { getNetworkSettings } from "@/config/network";
@@ -411,6 +410,7 @@ const RESERVED_METHODS = [
   "0xa22cb465", // setApprovalForAll
 ];
 
+// eslint-disable-next-line
 const checkMintIsSafe = (mint: CollectionMint): boolean => {
   const methodId = mint.details.tx.data.signature;
   if (RESERVED_METHODS.includes(methodId)) {
@@ -426,6 +426,7 @@ export const extractByContractMetadata = async (
   contractMetadata: any,
   contractDeployer?: string | null
 ) => {
+  // eslint-disable-next-line
   const mintConfig = contractMetadata.mintConfig;
 
   // Once we have more use cases, move standard logic to a dedicated method
@@ -435,6 +436,7 @@ export const extractByContractMetadata = async (
     const mintFactory = getNetworkSettings().mintFactories[contractDeployer];
 
     if (mintFactory) {
+      // eslint-disable-next-line
       standard = mintFactory.standard;
     }
   }
@@ -448,7 +450,7 @@ export const extractByContractMetadata = async (
   // });
 
   const collectionMints: CollectionMint[] = [];
-  
+
   // NOTE: Mint phase processing disabled until parseConfig is available
   // TODO: Re-enable when @reservoir0x/mint-interface package is published
   // for (const phase of parsed.phases) {

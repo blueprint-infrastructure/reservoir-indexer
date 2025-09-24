@@ -13,7 +13,6 @@ import { cosigner, saveOffChainCancellations } from "@/utils/offchain-cancel";
 import { Features, FlaggedTokensChecker } from "@/utils/offchain-cancel/seaport/flagged-tokens";
 import { redis } from "@/common/redis";
 import * as erc721c from "@/utils/erc721c";
-import { logger } from "@/common/logger";
 
 export type OffChainCancellableOrderKind =
   | "seaport-v1.4"
@@ -273,7 +272,8 @@ export const doSignOrder = async (
         [Sdk.SeaportBase.Addresses.ReservoirV16RoyaltyEnforcingZone[config.chainId]].includes(
           order.params.zone
         ) &&
-        (Sdk.Erc721c.Addresses.TransferValidatorV4[config.chainId] || Sdk.Erc721c.Addresses.TransferValidatorV5[config.chainId])
+        (Sdk.Erc721c.Addresses.TransferValidatorV4[config.chainId] ||
+          Sdk.Erc721c.Addresses.TransferValidatorV5[config.chainId])
       ) {
         const info = order.getInfo();
 
@@ -282,7 +282,10 @@ export const doSignOrder = async (
 
           if (
             configV3 &&
-            (configV3.transferValidator === Sdk.Erc721c.Addresses.TransferValidatorV4[config.chainId] || configV3.transferValidator === Sdk.Erc721c.Addresses.TransferValidatorV5[config.chainId])
+            (configV3.transferValidator ===
+              Sdk.Erc721c.Addresses.TransferValidatorV4[config.chainId] ||
+              configV3.transferValidator ===
+                Sdk.Erc721c.Addresses.TransferValidatorV5[config.chainId])
           ) {
             transferValidator = configV3.transferValidator;
           }

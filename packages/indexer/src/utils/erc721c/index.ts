@@ -6,7 +6,6 @@ import { idb } from "@/common/db";
 import { baseProvider } from "@/common/provider";
 import { toBuffer } from "@/common/utils";
 import { config } from "@/config/index";
-import { logger } from "@/common/logger";
 
 import * as v1 from "@/utils/erc721c/v1";
 import * as v2 from "@/utils/erc721c/v2";
@@ -21,10 +20,10 @@ export const refreshConfig = async (contract: string) => {
     version === "v1"
       ? await v1.refreshConfig(contract)
       : version === "v2"
-        ? await v2.refreshConfig(contract)
-        : version === "v3"
-          ? await v3.refreshConfig(contract)
-          : await v5.refreshConfig(contract);
+      ? await v2.refreshConfig(contract)
+      : version === "v3"
+      ? await v3.refreshConfig(contract)
+      : await v5.refreshConfig(contract);
 
     // TODO: Ideally we have a single database table to store the ERC721C configuration
     const nonMatchingConfigTables =
