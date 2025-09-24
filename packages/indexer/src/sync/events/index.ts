@@ -1,4 +1,4 @@
-import { BlockWithTransactions, Filter } from "@ethersproject/abstract-provider";
+import { BlockWithTransactions, Filter, Log } from "@ethersproject/abstract-provider";
 import _ from "lodash";
 import getUuidByString from "uuid-by-string";
 
@@ -13,13 +13,14 @@ import { parseEvent } from "@/events-sync/parser";
 import * as es from "@/events-sync/storage";
 import * as syncEventsUtils from "@/events-sync/utils";
 import * as blocksModel from "@/models/blocks";
+import { getIndexedContractsAllowlist } from "@/utils/indexed-contracts";
 
 import { removeUnsyncedEventsActivitiesJob } from "@/jobs/elasticsearch/activities/remove-unsynced-events-activities-job";
 import { blockCheckJob } from "@/jobs/events-sync/block-check-queue-job";
 import { eventsSyncRealtimeJob } from "@/jobs/events-sync/events-sync-realtime-job";
 import { saveRedisTransactionsJob } from "@/jobs/events-sync/save-redis-transactions-job";
 import { HashZero } from "@ethersproject/constants";
-import { JsonRpcProvider } from "@ethersproject/providers";
+import { Formatter, JsonRpcProvider } from "@ethersproject/providers";
 
 export interface SyncBlockOptions {
   skipLogsCheck?: boolean;
@@ -352,9 +353,92 @@ const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
     );
   }
 
-  const logs = provider
-    ? await provider.getLogs(eventFilter)
-    : await baseProvider.getLogs(eventFilter);
+  let allowlist: string[] | undefined;
+
+  if (!eventFilter.address && (allowlist = await getIndexedContractsAllowlist())?.length) {
+    (eventFilter as unknown as { address: string[] }).address = allowlist;
+  } else {
+    logger.debug(
+      "With Address or No allowlist",
+      `${JSON.stringify(eventFilter.address)}\nAllowlist: ${JSON.stringify(allowlist)}`
+    );
+  }
+
+  // logger.debug("filter", `Filter: ${JSON.stringify(_.omit(eventFilter, "topics"))}`);
+
+  const myProvider = provider ?? baseProvider;
+
+  // logger.debug("myProvider", `My provider: ${myProvider.connection.url}`);
+
+  // const logs = await myProvider.getLogs(eventFilter);
+
+  await myProvider.getNetwork();
+  // Since ethers.js doesn't support arrays in filter.address, we need to work around it.
+  // https://github.com/ethers-io/ethers.js/blob/v5.7/packages/providers/src.ts/base-provider.ts#L1921
+  // https://github.com/ethers-io/ethers.js/blob/v5.7/packages/providers/src.ts/base-provider.ts#L1609
+  const fixedFilter: Filter = {
+    ...eventFilter,
+  };
+
+  const promises: Promise<unknown>[] = [];
+
+  fixedFilter.fromBlock != null &&
+    promises.push(
+      myProvider._getBlockTag(fixedFilter.fromBlock).then((block) => {
+        fixedFilter.fromBlock = block;
+      })
+    );
+
+  fixedFilter.toBlock != null &&
+    promises.push(
+      myProvider._getBlockTag(fixedFilter.toBlock).then((block) => {
+        fixedFilter.toBlock = block;
+      })
+    );
+
+  promises.length && (await Promise.all(promises));
+
+  // // Write the eventFilter object to a file for debugging/auditing purposes
+  // try {
+  //   const fs = await import("fs");
+  //   const path = await import("path");
+  //   const outputDir = path.join(process.cwd(), "temp");
+  //   if (!fs.existsSync(outputDir)) {
+  //     fs.mkdirSync(outputDir, { recursive: true });
+  //   }
+  //   const filePath = path.join(
+  //     outputDir,
+  //     `eventFilter_${eventFilter.fromBlock ?? "unknown"}_${eventFilter.toBlock ?? "unknown"}.json`
+  //   );
+  //   fs.writeFileSync(
+  //     filePath,
+  //     JSON.stringify(
+  //       {
+  //         eventFilter,
+  //         fixedFilter,
+  //       },
+  //       null,
+  //       2
+  //     ),
+  //     "utf8"
+  //   );
+  //   logger.debug("eventFilter", `Wrote eventFilter to ${filePath}`);
+  // } catch (err) {
+  //   logger.error("eventFilter", `Failed to write eventFilter to file: ${err}`);
+  // }
+
+  // logger.debug("resolveProperties", "done");
+  let logs: Array<Log> = await myProvider.send("eth_getLogs", [fixedFilter]);
+  // logger.debug("eth_getLogs", "fetched");
+  logs.forEach((log) => {
+    if (log.removed == null) {
+      log.removed = false;
+    }
+  });
+  logs = Formatter.arrayOf(myProvider.formatter.filterLog.bind(myProvider.formatter))(logs);
+
+  // logger.debug("formatted logs", `done`);
+
   const timerEnd = Date.now();
   return {
     logs,
@@ -654,13 +738,14 @@ export const syncEvents = async (
   const { logs, getLogsTime } = await _getLogs(eventFilter, rpcProvider);
 
   // Filter out transactions that we have no log for (we don't want to save these transactions)
-  if ([137, 324].includes(config.chainId)) {
-    blockData.forEach((block) => {
-      block.transactions = block.transactions.filter((tx) =>
-        logs.find((log) => log.transactionHash === tx.hash)
-      );
-    });
-  }
+  // if ([137, 324].includes(config.chainId)) {
+  // enable this for all chains
+  blockData.forEach((block) => {
+    block.transactions = block.transactions.filter((tx) =>
+      logs.find((log) => log.transactionHash === tx.hash)
+    );
+  });
+  // }
 
   const saveDataTimes = await Promise.all([
     ...blockData.map(async (block) => {

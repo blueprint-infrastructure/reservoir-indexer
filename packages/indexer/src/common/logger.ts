@@ -31,6 +31,9 @@ const log = (level: "error" | "info" | "warn" | "debug") => {
         format: "YYYY-MM-DD HH:mm:ss.SSS",
       }),
       format.json()
+      // format.prettyPrint({
+      //   colorize: true,
+      // })
     ),
     transports: [
       process.env.DATADOG_API_KEY

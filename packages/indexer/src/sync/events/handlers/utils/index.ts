@@ -43,6 +43,7 @@ import {
 import { format } from "date-fns";
 import { NftTransferEventInfo } from "@/elasticsearch/indexes/activities/event-handlers/base";
 import { config } from "@/config/index";
+import { getIndexedContractsAllowlist } from "@/utils/indexed-contracts";
 
 // Semi-parsed and classified event
 export type EnhancedEvent = {
@@ -175,6 +176,28 @@ export const processOnChainData = async (data: OnChainData, backfill?: boolean) 
     ]);
   }
   const endAssignSourceToFillEvents = Date.now();
+
+  /**
+   * Optional whitelist filtering at persist boundary (defense in depth)
+   * TODO check if this is still needed nowthat we do filtering at getLogs level packages/indexer/src/sync/events/index.ts#_getLogs
+   */
+  const allowlist = await getIndexedContractsAllowlist();
+  if (allowlist?.length) {
+    const set = new Set(allowlist.map((a) => a.toLowerCase()));
+    data.nftTransferEvents = data.nftTransferEvents.filter((e) =>
+      set.has(e.baseEventParams.address)
+    );
+    data.nftApprovalEvents = data.nftApprovalEvents.filter((e) =>
+      set.has(e.baseEventParams.address)
+    );
+    data.fillEvents = data.fillEvents.filter((e) => set.has(e.contract.toLowerCase()));
+    data.fillEventsPartial = data.fillEventsPartial.filter((e) =>
+      set.has(e.contract.toLowerCase())
+    );
+    data.fillEventsOnChain = data.fillEventsOnChain.filter((e) =>
+      set.has(e.contract.toLowerCase())
+    );
+  }
 
   // Persist events
   // WARNING! Fills should always come first in order to properly mark

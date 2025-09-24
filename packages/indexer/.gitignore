@@ -13,6 +13,8 @@ tsconfig.tsbuildinfo
 yarn-error.log
 postgres/
 scripts/
+temp/*
+local*
 
 # IDE
 *.iml
