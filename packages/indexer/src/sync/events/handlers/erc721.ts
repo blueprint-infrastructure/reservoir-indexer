@@ -185,6 +185,7 @@ export const handleEvents = async (events: EnhancedEvent[], onChainData: OnChain
               baseEventParams.txHash
             })`
           );
+          break; // Actually skip processing instead of falling through!
         } else if (toNumber - fromNumber > 100) {
           logger.info(
             "erc721-handler",
