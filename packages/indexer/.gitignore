@@ -14,7 +14,7 @@ yarn-error.log
 postgres/
 scripts/
 temp/*
-local*
+local.*
 
 # IDE
 *.iml
