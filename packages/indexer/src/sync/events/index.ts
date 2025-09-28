@@ -6,7 +6,12 @@ import { logger } from "@/common/logger";
 import { archiveProvider, backfillProvider, baseProvider } from "@/common/provider";
 import { acquireLock, redis } from "@/common/redis";
 import { config } from "@/config/index";
-import { allEventDataAddresses, EventKind, EventSubKind, getEventData } from "@/events-sync/data";
+import {
+  bpFilteredEventAddresses,
+  EventKind,
+  EventSubKind,
+  getEventData,
+} from "@/events-sync/data";
 import { EventsBatch, EventsByKind, processEventsBatchV2 } from "@/events-sync/handlers";
 import { EnhancedEvent } from "@/events-sync/handlers/utils";
 import { parseEvent } from "@/events-sync/parser";
@@ -359,7 +364,7 @@ const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
     ...eventFilter,
     address: eventFilter.address
       ? [eventFilter.address]
-      : [...((await getIndexedContractsAllowlist()) ?? []), ...allEventDataAddresses],
+      : [...((await getIndexedContractsAllowlist()) ?? []), ...bpFilteredEventAddresses],
   };
 
   fixedFilter.address = fixedFilter.address && [...new Set(fixedFilter.address)];
