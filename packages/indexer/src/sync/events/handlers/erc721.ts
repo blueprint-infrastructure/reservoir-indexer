@@ -185,6 +185,7 @@ export const handleEvents = async (events: EnhancedEvent[], onChainData: OnChain
               baseEventParams.txHash
             })`
           );
+          // TODO @BPT there should be a way to process large consecutive transfers, should not be just skipped
           break; // Actually skip processing instead of falling through!
         } else if (toNumber - fromNumber > 100) {
           logger.info(

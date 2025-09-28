@@ -167,6 +167,7 @@ export default class OnchainMetadataFetchTokenUriJob extends AbstractRabbitMqJob
         }
 
         if (config.fallbackMetadataIndexingMethod && fallbackTokens.length) {
+          // TODO @BPT handle fallback tokens
           // await metadataIndexFetchJob.addToQueue(
           //   fallbackTokens.map((fallbackToken) => ({
           //     kind: "single-token",

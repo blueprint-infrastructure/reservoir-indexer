@@ -6,7 +6,7 @@ import { logger } from "@/common/logger";
 import { archiveProvider, backfillProvider, baseProvider } from "@/common/provider";
 import { acquireLock, redis } from "@/common/redis";
 import { config } from "@/config/index";
-import { EventKind, EventSubKind, getEventData } from "@/events-sync/data";
+import { allEventDataAddresses, EventKind, EventSubKind, getEventData } from "@/events-sync/data";
 import { EventsBatch, EventsByKind, processEventsBatchV2 } from "@/events-sync/handlers";
 import { EnhancedEvent } from "@/events-sync/handlers/utils";
 import { parseEvent } from "@/events-sync/parser";
@@ -353,16 +353,16 @@ const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
     );
   }
 
-  let allowlist: string[] | undefined;
+  const fixedFilter: Omit<Filter, "address"> & {
+    address?: string[];
+  } = {
+    ...eventFilter,
+    address: eventFilter.address
+      ? [eventFilter.address]
+      : [...((await getIndexedContractsAllowlist()) ?? []), ...allEventDataAddresses],
+  };
 
-  if (!eventFilter.address && (allowlist = await getIndexedContractsAllowlist())?.length) {
-    (eventFilter as unknown as { address: string[] }).address = allowlist;
-  } else {
-    logger.debug(
-      "With Address or No allowlist",
-      `${JSON.stringify(eventFilter.address)}\nAllowlist: ${JSON.stringify(allowlist)}`
-    );
-  }
+  fixedFilter.address = fixedFilter.address && [...new Set(fixedFilter.address)];
 
   // logger.debug("filter", `Filter: ${JSON.stringify(_.omit(eventFilter, "topics"))}`);
 
@@ -376,9 +376,6 @@ const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
   // Since ethers.js doesn't support arrays in filter.address, we need to work around it.
   // https://github.com/ethers-io/ethers.js/blob/v5.7/packages/providers/src.ts/base-provider.ts#L1921
   // https://github.com/ethers-io/ethers.js/blob/v5.7/packages/providers/src.ts/base-provider.ts#L1609
-  const fixedFilter: Filter = {
-    ...eventFilter,
-  };
 
   const promises: Promise<unknown>[] = [];
 
@@ -397,35 +394,6 @@ const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
     );
 
   promises.length && (await Promise.all(promises));
-
-  // // Write the eventFilter object to a file for debugging/auditing purposes
-  // try {
-  //   const fs = await import("fs");
-  //   const path = await import("path");
-  //   const outputDir = path.join(process.cwd(), "temp");
-  //   if (!fs.existsSync(outputDir)) {
-  //     fs.mkdirSync(outputDir, { recursive: true });
-  //   }
-  //   const filePath = path.join(
-  //     outputDir,
-  //     `eventFilter_${eventFilter.fromBlock ?? "unknown"}_${eventFilter.toBlock ?? "unknown"}.json`
-  //   );
-  //   fs.writeFileSync(
-  //     filePath,
-  //     JSON.stringify(
-  //       {
-  //         eventFilter,
-  //         fixedFilter,
-  //       },
-  //       null,
-  //       2
-  //     ),
-  //     "utf8"
-  //   );
-  //   logger.debug("eventFilter", `Wrote eventFilter to ${filePath}`);
-  // } catch (err) {
-  //   logger.error("eventFilter", `Failed to write eventFilter to file: ${err}`);
-  // }
 
   // logger.debug("resolveProperties", "done");
   let logs: Array<Log> = await myProvider.send("eth_getLogs", [fixedFilter]);
