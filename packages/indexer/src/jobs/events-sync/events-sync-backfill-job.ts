@@ -37,18 +37,8 @@ export default class EventsSyncBackfillJob extends AbstractRabbitMqJobHandler {
       process.env.BASE_NETWORK_ARCHIVE_URL ===
       "https://eth-mainnet.g.alchemy.com/v2/-M-P7uSzx5o7A7LKgQJQIAwWD45h20nG"
     ) {
-      splitSize = Math.max(splitSize, 10);
+      splitSize = Math.min(splitSize, 10);
     }
-
-    logger.debug(
-      "backfill process",
-      JSON.stringify({
-        fromBlock,
-        toBlock,
-        splitSize,
-        syncOptions,
-      })
-    );
 
     if (diff > splitSize) {
       const splitJobs = [];
