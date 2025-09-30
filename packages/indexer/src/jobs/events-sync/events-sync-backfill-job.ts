@@ -40,6 +40,16 @@ export default class EventsSyncBackfillJob extends AbstractRabbitMqJobHandler {
       splitSize = Math.max(splitSize, 10);
     }
 
+    logger.debug(
+      "backfill process",
+      JSON.stringify({
+        fromBlock,
+        toBlock,
+        splitSize,
+        syncOptions,
+      })
+    );
+
     if (diff > splitSize) {
       const splitJobs = [];
       for (let i = fromBlock; i < toBlock; i += splitSize) {
