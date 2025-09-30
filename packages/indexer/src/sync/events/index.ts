@@ -27,6 +27,11 @@ import { saveRedisTransactionsJob } from "@/jobs/events-sync/save-redis-transact
 import { HashZero } from "@ethersproject/constants";
 import { Formatter, JsonRpcProvider } from "@ethersproject/providers";
 
+type MyEventFilter = Omit<Filter, "fromBlock" | "toBlock"> & {
+  fromBlock?: number;
+  toBlock?: number;
+};
+
 export interface SyncBlockOptions {
   skipLogsCheck?: boolean;
   syncDetails?:
@@ -344,7 +349,7 @@ export const extractEventsBatches = (enhancedEvents: EnhancedEvent[]): EventsBat
   return [...txHashToEventsBatch.values()];
 };
 
-const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
+const _getLogs = async (eventFilter: MyEventFilter, provider?: JsonRpcProvider) => {
   const timerStart = Date.now();
 
   if (provider) {
@@ -358,7 +363,7 @@ const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
     );
   }
 
-  const fixedFilter: Omit<Filter, "address"> & {
+  const fixedFilter: Omit<MyEventFilter, "address"> & {
     address?: string[];
   } = {
     ...eventFilter,
@@ -382,26 +387,46 @@ const _getLogs = async (eventFilter: Filter, provider?: JsonRpcProvider) => {
   // https://github.com/ethers-io/ethers.js/blob/v5.7/packages/providers/src.ts/base-provider.ts#L1921
   // https://github.com/ethers-io/ethers.js/blob/v5.7/packages/providers/src.ts/base-provider.ts#L1609
 
-  const promises: Promise<unknown>[] = [];
+  const eventFilters: Array<typeof fixedFilter> = [];
 
-  fixedFilter.fromBlock != null &&
-    promises.push(
-      myProvider._getBlockTag(fixedFilter.fromBlock).then((block) => {
-        fixedFilter.fromBlock = block;
-      })
-    );
+  if (
+    myProvider.connection.url.startsWith("https://eth-mainnet.g.alchemy.com/v2") &&
+    fixedFilter.toBlock &&
+    fixedFilter.fromBlock
+  ) {
+    const blockDiff = fixedFilter.toBlock - fixedFilter.fromBlock;
 
-  fixedFilter.toBlock != null &&
-    promises.push(
-      myProvider._getBlockTag(fixedFilter.toBlock).then((block) => {
-        fixedFilter.toBlock = block;
-      })
-    );
-
-  promises.length && (await Promise.all(promises));
+    for (let i = 0; i < blockDiff; i += 10) {
+      eventFilters.push({
+        ...fixedFilter,
+        fromBlock: fixedFilter.fromBlock + i,
+        toBlock: Math.min(fixedFilter.fromBlock + i + 9, fixedFilter.toBlock),
+      });
+    }
+  } else {
+    eventFilters.push(fixedFilter);
+  }
 
   // logger.debug("resolveProperties", "done");
-  let logs: Array<Log> = await myProvider.send("eth_getLogs", [fixedFilter]);
+  let logs: Array<Log> = (
+    await Promise.all(
+      eventFilters.map((eventFilter) =>
+        myProvider.send("eth_getLogs", [
+          {
+            ...eventFilter,
+            fromBlock:
+              eventFilter.fromBlock == undefined
+                ? undefined
+                : syncEventsUtils.blockNumberToHex(eventFilter.fromBlock),
+            toBlock:
+              eventFilter.toBlock == undefined
+                ? undefined
+                : syncEventsUtils.blockNumberToHex(eventFilter.toBlock),
+          },
+        ])
+      )
+    )
+  ).flat();
   // logger.debug("eth_getLogs", "fetched");
   logs.forEach((log) => {
     if (log.removed == null) {
@@ -536,7 +561,7 @@ export const syncEventsOnly = async (
     rpcProvider = backfillProvider;
   }
 
-  const eventFilter: Filter = {
+  const eventFilter: MyEventFilter = {
     topics: [[...new Set(getEventData().map(({ topic }) => topic))]],
     fromBlock: blocks?.fromBlock,
     toBlock: blocks?.toBlock,
@@ -682,7 +707,7 @@ export const syncEvents = async (
 
   const endGetBlockTime = Date.now();
 
-  const eventFilter: Filter = {
+  const eventFilter: MyEventFilter = {
     topics: [[...new Set(getEventData().map(({ topic }) => topic))]],
     fromBlock: blocks?.fromBlock,
     toBlock: blocks?.toBlock,

@@ -31,24 +31,7 @@ export default class EventsSyncBackfillJob extends AbstractRabbitMqJobHandler {
     // if the syncDetails are null, split the job into smaller jobs of 1 block
     // otherwise, split the job into smaller jobs of 1 blocks
     const diff = toBlock - fromBlock;
-
-    let splitSize = syncOptions?.blocksPerBatch || 1;
-    if (
-      process.env.BASE_NETWORK_ARCHIVE_URL ===
-      "https://eth-mainnet.g.alchemy.com/v2/-M-P7uSzx5o7A7LKgQJQIAwWD45h20nG"
-    ) {
-      splitSize = Math.min(splitSize, 10);
-    }
-
-    logger.debug(
-      "backfill process",
-      JSON.stringify({
-        fromBlock,
-        toBlock,
-        splitSize,
-        syncOptions,
-      })
-    );
+    const splitSize = syncOptions?.blocksPerBatch || 1;
 
     if (diff > splitSize) {
       const splitJobs = [];
@@ -66,16 +49,6 @@ export default class EventsSyncBackfillJob extends AbstractRabbitMqJobHandler {
 
       return;
     }
-
-    logger.debug(
-      "Backfill sync start",
-      JSON.stringify({
-        fromBlock,
-        toBlock,
-        splitSize,
-        syncOptions,
-      })
-    );
 
     try {
       if (syncOptions?.syncEventsOnly) {
