@@ -67,6 +67,16 @@ export default class EventsSyncBackfillJob extends AbstractRabbitMqJobHandler {
       return;
     }
 
+    logger.debug(
+      "Backfill sync start",
+      JSON.stringify({
+        fromBlock,
+        toBlock,
+        splitSize,
+        syncOptions,
+      })
+    );
+
     try {
       if (syncOptions?.syncEventsOnly) {
         await syncEventsOnly(
