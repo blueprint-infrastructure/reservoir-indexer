@@ -27,9 +27,10 @@ import { saveRedisTransactionsJob } from "@/jobs/events-sync/save-redis-transact
 import { HashZero } from "@ethersproject/constants";
 import { Formatter, JsonRpcProvider } from "@ethersproject/providers";
 
-type MyEventFilter = Omit<Filter, "fromBlock" | "toBlock"> & {
+type MyEventFilter = Omit<Filter, "fromBlock" | "toBlock" | "address"> & {
   fromBlock?: number;
   toBlock?: number;
+  address?: string[];
 };
 
 export interface SyncBlockOptions {
@@ -41,8 +42,8 @@ export interface SyncBlockOptions {
         eventsType?: string[];
       }
     | {
-        method: "address";
-        address: string;
+        method: "addresses";
+        addresses: string[];
       };
   backfill?: boolean;
   syncEventsOnly?: boolean;
@@ -367,8 +368,8 @@ const _getLogs = async (eventFilter: MyEventFilter, provider?: JsonRpcProvider) 
     address?: string[];
   } = {
     ...eventFilter,
-    address: eventFilter.address
-      ? [eventFilter.address]
+    address: eventFilter.address?.length
+      ? eventFilter.address
       : [...((await getIndexedContractsAllowlist()) ?? []), ...bpFilteredEventAddresses],
   };
 
@@ -578,9 +579,9 @@ export const syncEventsOnly = async (
         ),
       ],
     ];
-  } else if (syncOptions?.syncDetails?.method === "address") {
+  } else if (syncOptions?.syncDetails?.method === "addresses") {
     // Filter to all events of a particular address (regardless of the topics)
-    eventFilter.address = syncOptions.syncDetails.address;
+    eventFilter.address = syncOptions.syncDetails.addresses;
     eventFilter.topics = undefined;
   }
 
@@ -724,9 +725,9 @@ export const syncEvents = async (
         ),
       ],
     ];
-  } else if (syncOptions?.syncDetails?.method === "address") {
-    // Filter to all events of a particular address (regardless of the topics)
-    eventFilter.address = syncOptions.syncDetails.address;
+  } else if (syncOptions?.syncDetails?.method === "addresses") {
+    // Filter to all events of a particular address list (regardless of the topics)
+    eventFilter.address = syncOptions.syncDetails.addresses;
     eventFilter.topics = undefined;
   }
 

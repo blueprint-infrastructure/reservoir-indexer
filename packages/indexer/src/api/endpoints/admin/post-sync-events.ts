@@ -31,7 +31,7 @@ export const postSyncEventsOptions: RouteOptions = {
         }).or("events", "eventsType"),
         Joi.object({
           method: Joi.string().valid("address"),
-          address: Joi.string().pattern(regex.address),
+          addresses: Joi.array().items(Joi.string().pattern(regex.address)).min(1),
         })
       ),
       blocksPerBatch: Joi.number().integer().positive().default(32),
