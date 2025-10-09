@@ -30,7 +30,7 @@ export const postSyncEventsOptions: RouteOptions = {
           eventsType: Joi.array().items(Joi.string().valid("ftTransferEvents")),
         }).or("events", "eventsType"),
         Joi.object({
-          method: Joi.string().valid("address"),
+          method: Joi.string().valid("addresses"),
           addresses: Joi.array().items(Joi.string().pattern(regex.address)).min(1),
         })
       ),
