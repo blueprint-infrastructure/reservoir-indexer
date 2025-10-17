@@ -47,6 +47,15 @@ export default class MetadataIndexProcessJob extends AbstractRabbitMqJobHandler 
     const pendingRefreshTokens = new PendingRefreshTokens(method);
     const refreshTokens = await pendingRefreshTokens.get(countTotal);
 
+    logger.info(
+      this.queueName,
+      JSON.stringify({
+        message: "Starting metadata process job.",
+        method,
+        refreshTokens,
+      })
+    );
+
     // If no more tokens
     if (_.isEmpty(refreshTokens)) {
       return;
