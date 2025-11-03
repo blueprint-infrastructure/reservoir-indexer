@@ -46,6 +46,7 @@ export const erc20LikeTransfer: EventData = {
     [Beeple.Addresses.Contract[config.chainId]?.toLowerCase()]: true,
     [CryptoArte.Addresses.Contract[config.chainId]?.toLowerCase()]: true,
     [CryptoVoxels.Addresses.Parcel[config.chainId]?.toLowerCase()]: true,
+    ["0x41a322b28d0ff354040e2cbc676f0320d8c8850d"]: true,
   },
   topic: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
   numTopics: 3,

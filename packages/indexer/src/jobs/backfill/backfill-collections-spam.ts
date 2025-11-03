@@ -34,6 +34,7 @@ export class BackfillCollectionsSpamJob extends AbstractRabbitMqJobHandler {
       excludeContracts: [
         "0x3b3ee1931dc30c1957379fac9aba94d1c48a5405",
         "0xb932a70a57673d89f4acffbe830e8ed7f75fb9e0",
+        "0x41a322b28d0ff354040e2cbc676f0320d8c8850d",
       ].map(toBuffer),
     };
 

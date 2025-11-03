@@ -30,6 +30,7 @@ import * as shreddingSassy from "./shredding-sassy";
 import * as tfoust from "./tfoust";
 import * as utopiaAvatars from "./utopia-avatars";
 import * as superrareShared from "./superrare-shared";
+import * as superrareShared850d from "./superrare-shared-850d";
 import * as foundationShared from "./foundation-shared";
 import * as kanpaiPandas from "./kanpai-pandas";
 import * as zedRun from "./zed-run";
@@ -416,6 +417,7 @@ extendCollection["1,0xc143bbfcdbdbed6d454803804752a064a622c1f3"] = asyncBlueprin
 
 // Superrare Shared
 extendCollection["1,0xb932a70a57673d89f4acffbe830e8ed7f75fb9e0"] = superrareShared;
+extendCollection["1,0x41a322b28d0ff354040e2cbc676f0320d8c8850d"] = superrareShared850d;
 
 // Foundation
 extendCollection["1,0x3b3ee1931dc30c1957379fac9aba94d1c48a5405"] = foundationShared;
@@ -709,6 +711,7 @@ extend["1,0x5f076e995290f3f9aea85fdd06d8fae118f2b75c"] = utopiaAvatars;
 
 // Superrare Shared
 extend["1,0xb932a70a57673d89f4acffbe830e8ed7f75fb9e0"] = superrareShared;
+extend["1,0x41a322b28d0ff354040e2cbc676f0320d8c8850d"] = superrareShared850d;
 
 //Foundation Shared
 extend["1,0x3b3ee1931dc30c1957379fac9aba94d1c48a5405"] = foundationShared;

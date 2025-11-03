@@ -47,6 +47,7 @@ unknown-*
 .idea
 .yarnclean
 coverage/
+.vscode/launch.json
 
 # Caches
 .eslintcache
