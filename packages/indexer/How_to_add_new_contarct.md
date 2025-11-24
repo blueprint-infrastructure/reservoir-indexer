@@ -4,14 +4,16 @@
 
 2. Connect to the server node
     ```bash
+    cd /home/reservoir
+    
     # get the latest code
     git pull
 
     # restart reservoir service
-    /home/reservoir/restart-services.sh
+    ./restart-services.sh
 
     # go to indexer dir
-    cd /home/reservoir/packages/indexer
+    cd packages/indexer
 
     # start backfill job
     CONTRACT_ADDRESS=new_contract_address ETHERSCAN_API_KEY=etherscan_api_key JSON_RPC_PROVIDER=json_rpc_endpoint yarn tsx scripts/start-backfill.ts 
