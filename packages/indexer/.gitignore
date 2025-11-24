@@ -12,7 +12,6 @@ tsconfig.tsbuildinfo
 # Misc
 yarn-error.log
 postgres/
-scripts/
 temp/*
 local.*
 
