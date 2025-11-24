@@ -14,5 +14,5 @@
     cd /home/reservoir/packages/indexer
 
     # start backfill job
-    CONTRACT_ADDRESS=new_contract_address ETHERSCAN_API_KEY=etherscan_api_key JSON_RPC_PROVIDER=json_rpc_endpoint tsx scripts/start-backfill.ts 
+    CONTRACT_ADDRESS=new_contract_address ETHERSCAN_API_KEY=etherscan_api_key JSON_RPC_PROVIDER=json_rpc_endpoint yarn tsx scripts/start-backfill.ts 
     ```
