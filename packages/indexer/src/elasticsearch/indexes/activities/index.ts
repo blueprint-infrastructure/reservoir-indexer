@@ -1095,9 +1095,8 @@ export const search = async (
   }
 
   // Backward compatibility
-  // 使用 _id 字段替代 id 字段，因为 id 是 text 类型不能排序，而 _id 是 Elasticsearch 内置字段可以排序
   if (searchAfter?.length != 1 && !params.continuationAsInt) {
-    esSort.push({ _id: { order: params.sortDirection } });
+    esSort.push({ id: { order: params.sortDirection } });
   }
 
   if (params.excludeSpam) {
