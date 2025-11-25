@@ -1088,8 +1088,7 @@ export const search = async (
   const esSort: any[] = [];
 
   if (params.sortBy == "timestamp") {
-    // 移除 format: "epoch_second"，因为 timestamp 字段是 decimal 类型，不是 date 类型
-    esSort.push({ timestamp: { order: params.sortDirection } });
+    esSort.push({ timestamp: { order: params.sortDirection, format: "epoch_second" } });
   } else {
     esSort.push({ createdAt: { order: params.sortDirection } });
   }
