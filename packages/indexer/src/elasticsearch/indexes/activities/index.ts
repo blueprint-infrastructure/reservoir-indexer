@@ -1087,11 +1087,11 @@ export const search = async (
 
   const esSort: any[] = [];
 
-  // if (params.sortBy == "timestamp") {
-  //   esSort.push({ timestamp: { order: params.sortDirection, format: "epoch_second" } });
-  // } else {
-  //   esSort.push({ createdAt: { order: params.sortDirection } });
-  // }
+  if (params.sortBy == "timestamp") {
+    esSort.push({ timestamp: { order: params.sortDirection, format: "epoch_second" } });
+  } else {
+    esSort.push({ createdAt: { order: params.sortDirection } });
+  }
 
   // Backward compatibility
   if (searchAfter?.length != 1 && !params.continuationAsInt) {
